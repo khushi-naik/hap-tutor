@@ -1,0 +1,66 @@
+public void run(){
+    /* put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */
+    rendering_force = true;
+    
+    if(haplyBoard.data_available()){
+      /* GET END-EFFECTOR STATE (TASK SPACE) */
+      widgetOne.device_read_data();
+      last_pos = pos_ee.copy();
+      angles.set(widgetOne.get_device_angles()); 
+      pos_ee.set(widgetOne.get_device_position(angles.array()));
+      
+      //pos_ee.set(device_to_graphics(pos_ee));
+      pos_ee.set(pos_ee.copy().mult(200));
+     
+        
+        s.setToolPosition(edgeTopLeftX+worldWidth/2-(pos_ee).x, edgeTopLeftY+(pos_ee).y-7);
+        s.updateCouplingForce();  
+    
+      
+      //s.setToolPosition(pos_ee.x, pos_ee.y);
+      
+      
+      if(s.h_avatar.isTouchingBody(c1)){
+        startLine = true;
+        last_pos = new PVector(3,4);
+        //println("on circle "+ s.getToolPositionX() + " y: "+s.getToolPositionY());
+        //println("on circle "+ s.getAvatarPositionX() + " y: "+s.getAvatarPositionY());
+      }
+      force.set(0, 0);
+      if(startLine){
+       
+          curr_pos.x = s.getToolPositionX();
+          curr_pos.y = s.getToolPositionY();
+          last_pos.set(s.getToolPositionX(), 4);
+          
+        
+        
+        println("on circle curr: "+ curr_pos.x + " y: "+curr_pos.y + "\nlast "+last_pos.x + " "+last_pos.y);
+        force.add(curr_pos.sub(last_pos).mult(-3));
+        //force.x = constrain(-3*(curr_pos.x-last_pos.x),-4,4);
+        //force.y = constrain(-3*(curr_pos.y-last_pos.y),-4,4);
+      }
+      if(s.h_avatar.isTouchingBody(c4)){
+        startLine=false;
+      }
+      
+      f_ee.set(force.copy());
+      println("force "+f_ee.x + " "+f_ee.y);
+      //f_ee.div(20000); 
+      //println("curr poss "+pos_ee +"\n last pos "+last_pos +"\nfor "+ f_ee);
+      
+      //println("val "+(edgeTopLeftX+worldWidth/2-(pos_ee).x+2));
+      
+        
+    }
+    f_ee.set(graphics_to_device(f_ee)); 
+    torques.set(widgetOne.set_device_torques(f_ee.array()));
+    widgetOne.device_write_torques();
+    
+    
+  
+  
+    world.step(1.0f/1000.0f);
+  
+    rendering_force = false;
+  }
